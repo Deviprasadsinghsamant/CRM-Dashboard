@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema(
   {
-    orderId: { type: String, required: true },
+    orderId: { type: String, required: true, unique: true },
     orderDate: { type: Date, required: true },
     bookedBy: { type: String, default: "Administrator", required: true },
     startDate: { type: Date, required: true },

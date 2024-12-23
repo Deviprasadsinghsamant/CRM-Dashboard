@@ -1,12 +1,32 @@
 import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
-import { Box, Button, Container, MenuItem, Paper, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Container,
+  MenuItem,
+  Paper,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography,
+} from "@mui/material";
 import dayjs from "dayjs"; //ADDITION
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import CustomerModal from "modals/Modal";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import InvoiceForm from "./forms/InvoiceForm";
+import LogistcsForm from "./forms/LogisticsForm";
+import LogisticsForm from "./forms/LogisticsForm";
+import PaymentForm from "./forms/PaymentForm";
+import ProductForm from "./forms/ProductForms";
 
 function Tables() {
   // States for all input fields
@@ -19,7 +39,11 @@ function Tables() {
   const [poPiDate, setPoPiDate] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customers, setCustomers] = useState([]); // Initialize as an empty array
-
+  //NEW ADD FOR FORM VISIBILITY
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [showLogisticsForm, setShowLogisticsForm] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [formData, setFormData] = useState({
     //newlines watchout
     // orderId: "",
@@ -36,6 +60,12 @@ function Tables() {
     quotationNumber: "",
     poPiNumber: "",
   });
+
+  //new add below
+  const [modalOpen, setModalOpen] = useState(false);
+  // Functions to handle modal open/close
+  const handleModalOpen = () => setModalOpen(true);
+  const handleModalClose = () => setModalOpen(false);
 
   //below is for automated orderid generator
   useEffect(() => {
@@ -101,12 +131,19 @@ function Tables() {
         //below new add
         customer: selectedCustomer?._id || "", // Send customer ID
         orderDate: orderDate.toISOString().split("T")[0],
+        bookedBy: "Administrator",
         startDate: startDate ? startDate.format("YYYY-MM-DD") : null,
         completionDate: completionDate ? completionDate.format("YYYY-MM-DD") : null,
         paymentDueDate: paymentDueDate ? paymentDueDate.format("YYYY-MM-DD") : null,
         quotationDate: quotationDate ? quotationDate.format("YYYY-MM-DD") : null,
-        poDate: poPiDate ? poPiDate.format("YYYY-MM-DD") : null,
-        ...formData,
+        poPiDate: poPiDate ? poPiDate.format("YYYY-MM-DD") : null,
+        transportationCost: formData.transportationCost || 0,
+        amountWithGST: formData.amountWithGST || 0,
+        totalAmount: formData.totalAmount || 0,
+        address: formData.address || "",
+        billTo: formData.billTo || "",
+        quotationNumber: formData.quotationNumber || "",
+        poPiNumber: formData.poPiNumber || "",
       };
 
       const response = await axios.post("http://localhost:8080/orders", formattedData);
@@ -115,6 +152,26 @@ function Tables() {
     } catch (error) {
       console.error("Error creating order:", error);
       alert("Failed to create the order.");
+    }
+  };
+
+  //NEW ADD TOGGLE
+  const toggleFormVisibility = (form) => {
+    switch (form) {
+      case "product":
+        setShowProductForm(!showProductForm);
+        break;
+      case "invoice":
+        setShowInvoiceForm(!showInvoiceForm);
+        break;
+      case "logistics":
+        setShowLogisticsForm(!showLogisticsForm);
+        break;
+      case "payment":
+        setShowPaymentForm(!showPaymentForm);
+        break;
+      default:
+        break;
     }
   };
 
@@ -136,7 +193,7 @@ function Tables() {
           </Button>
         </Box>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Grid container spacing={2}>
+          <Grid container spacing={3} bgcolor="#f9f9f9" mb={4}>
             <Grid item xs={12} md={4}>
               <TextField
                 label="Order ID"
@@ -228,7 +285,17 @@ function Tables() {
                 </MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid
+              item
+              xs={12}
+              md={8}
+              // new add below style only
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
               <Autocomplete
                 options={customers} // Use customer objects
                 getOptionLabel={(option) => option.contactName} // Get customer name
@@ -249,9 +316,25 @@ function Tables() {
                     }}
                   />
                 )}
+                style={{ flexGrow: 1 }}
               />
+              <Button
+                variant="contained"
+                style={{
+                  background: "linear-gradient(to right, #6a11cb, #2575fc)",
+                  color: "white",
+                  height: "47px", // Match the height of the Autocomplete
+                  padding: "0 15px",
+                  fontSize: "12px",
+                  width: "250px",
+                }}
+                onClick={handleModalOpen}
+              >
+                Add Customer
+              </Button>
+              <CustomerModal open={modalOpen} onClose={handleModalClose} />
             </Grid>
-
+            <Grid></Grid>
             <Grid item xs={12} md={4}>
               <TextField
                 label="Contact Person"
@@ -292,18 +375,20 @@ function Tables() {
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
-                label="GST Number"
-                name="gstNumber"
-                value={formData.gstNumber}
+                label="Bill To"
+                name="billTo"
+                value={formData.billTo}
                 onChange={handleInputChange}
+                multiline
+                rows={4}
                 fullWidth
               />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
-                label="Bill To"
-                name="billTo"
-                value={formData.billTo}
+                label="GST Number"
+                name="gstNumber"
+                value={formData.gstNumber}
                 onChange={handleInputChange}
                 multiline
                 rows={4}
@@ -327,6 +412,20 @@ function Tables() {
                 renderInput={(params) => <TextField {...params} fullWidth />}
                 sx={{ width: "100%" }}
               />
+            </Grid>{" "}
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="Quotation Attachment"
+                type="file"
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <i className="fas fa-file-alt"></i>
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
@@ -346,8 +445,131 @@ function Tables() {
                 renderInput={(params) => <TextField {...params} fullWidth />}
               />
             </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="PO/PI Attachment"
+                type="file"
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <i className="fas fa-file-alt"></i>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
           </Grid>
         </LocalizationProvider>
+        {/* Button to add product details */}
+        <Box display="flex" justifyContent="center" mt={4} gap={2}>
+          <Button
+            variant="contained"
+            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
+            style={{
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "white",
+            }}
+            startIcon={<AddCircleIcon />}
+            onClick={() => toggleFormVisibility("product")}
+          >
+            Add Product Details
+          </Button>
+          <Button
+            variant="contained"
+            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
+            style={{
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "white",
+            }}
+            startIcon={<AddCircleIcon />}
+            onClick={() => toggleFormVisibility("invoice")}
+          >
+            Add Invoice Details
+          </Button>
+          <Button
+            variant="contained"
+            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
+            style={{
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "white",
+            }}
+            startIcon={<AddCircleIcon />}
+            onClick={() => toggleFormVisibility("logistics")}
+          >
+            Add Logistics Details
+          </Button>
+          <Button
+            variant="contained"
+            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
+            style={{
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "white",
+            }}
+            startIcon={<AddCircleIcon />}
+            onClick={() => toggleFormVisibility("payment")}
+          >
+            Add Payment Details
+          </Button>
+        </Box>
+
+        {/* Conditionally Render Forms */}
+        {showProductForm && <ProductForm />}
+        {showInvoiceForm && <InvoiceForm />}
+        {showLogisticsForm && <LogisticsForm />}
+        {showPaymentForm && <PaymentForm />}
+
+        {/* save and submit */}
+        <Grid container spacing={2} style={{ padding: "20px" }}>
+          {/* Cancel CAPA Plan */}
+
+          {/* Save and Submit Buttons */}
+          <Grid
+            item
+            xs={12}
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "16px",
+            }}
+          >
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                style={{
+                  background: "linear-gradient(to right, #6a11cb, #2575fc)",
+                  color: "#fff",
+                  textTransform: "none",
+                  padding: "8px 24px",
+                }}
+              >
+                Cancel Order
+              </Button>
+            </Grid>
+            <Button
+              variant="contained"
+              style={{
+                background: "linear-gradient(to right, #6a11cb, #2575fc)",
+                color: "#fff",
+                textTransform: "none",
+                padding: "8px 24px",
+              }}
+            >
+              Save
+            </Button>
+            <Button
+              variant="contained"
+              style={{
+                background: "linear-gradient(to right, #6a11cb, #2575fc)",
+                color: "#fff",
+                textTransform: "none",
+                padding: "8px 24px",
+              }}
+            >
+              Submit
+            </Button>
+          </Grid>
+        </Grid>
       </Paper>
     </Container>
   );
