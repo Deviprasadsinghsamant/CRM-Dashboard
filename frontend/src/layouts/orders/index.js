@@ -27,10 +27,18 @@ import LogistcsForm from "./forms/LogisticsForm";
 import LogisticsForm from "./forms/LogisticsForm";
 import PaymentForm from "./forms/PaymentForm";
 import ProductForm from "./forms/ProductForms";
+import { useOrderContext } from "../../context/OrderContext";
+import { generateOrderId } from "../../context/OrderContext";
 
 function Tables() {
+  //f2
+  // const { orderId, generateOrderId } = useOrderContext();
+  // const orderId = generateOrderId();
+  const { orderId, generateOrderId } = useOrderContext();
+
   // States for all input fields
-  const [orderId, setOrderId] = useState("");
+  //below line helped running if it doesnt help then revert
+  // const [orderId, setOrderId] = useState("");
   const [orderDate, setOrderDate] = useState(dayjs());
   const [orderStartDate, setOrderStartDate] = useState(null);
   const [orderCompletionDate, setOrderCompletionDate] = useState(null);
@@ -68,15 +76,32 @@ function Tables() {
   const handleModalClose = () => setModalOpen(false);
 
   //below is for automated orderid generator
-  useEffect(() => {
-    const generateOrderId = () => {
-      const timestamp = Date.now();
-      const randomNum = Math.floor(Math.random() * 1000);
-      return `ORD-${timestamp}-${randomNum}`;
-    };
+  // useEffect(() => {
+  //   const generateOrderId = () => {
+  //     const timestamp = Date.now();
+  //     const randomNum = Math.floor(Math.random() * 1000);
+  //     return `ORD-${timestamp}-${randomNum}`;
+  //   };
 
-    setOrderId(generateOrderId());
-  }, []);
+  //   setOrderId(generateOrderId());
+  // }, []);
+
+  //below very very important
+  // useEffect(() => {
+  //   if (!orderId) {
+  //     generateOrderId(); // Generate orderId if not already generated
+  //   }
+  // }, [orderId, generateOrderId]);
+  //v4 chain final
+  useEffect(() => {
+    const createOrderId = async () => {
+      if (!orderId) {
+        // Wait for the async operation to complete
+        await generateOrderId();
+      }
+    };
+    createOrderId();
+  }, [orderId, generateOrderId]);
 
   //below is to fetch all the customersss
   useEffect(() => {
@@ -182,7 +207,6 @@ function Tables() {
           <Typography variant="h4">Order Management</Typography>
           <Button
             variant="contained"
-            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
             style={{
               background: "linear-gradient(to right, #6a11cb, #2575fc)",
               color: "white",
@@ -199,7 +223,7 @@ function Tables() {
                 label="Order ID"
                 name="orderId"
                 disabled
-                value={orderId}
+                value={orderId || "Generating..."}
                 InputProps={{ readOnly: true }}
                 fullWidth
               />
@@ -461,11 +485,10 @@ function Tables() {
             </Grid>
           </Grid>
         </LocalizationProvider>
-        {/* Button to add product details */}
+
         <Box display="flex" justifyContent="center" mt={4} gap={2}>
           <Button
             variant="contained"
-            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
             style={{
               background: "linear-gradient(to right, #6a11cb, #2575fc)",
               color: "white",
@@ -477,7 +500,6 @@ function Tables() {
           </Button>
           <Button
             variant="contained"
-            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
             style={{
               background: "linear-gradient(to right, #6a11cb, #2575fc)",
               color: "white",
@@ -489,7 +511,6 @@ function Tables() {
           </Button>
           <Button
             variant="contained"
-            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
             style={{
               background: "linear-gradient(to right, #6a11cb, #2575fc)",
               color: "white",
@@ -501,7 +522,6 @@ function Tables() {
           </Button>
           <Button
             variant="contained"
-            // style={{ backgroundColor: "white", color: "black", border: "1px solid black" }}
             style={{
               background: "linear-gradient(to right, #6a11cb, #2575fc)",
               color: "white",
@@ -512,18 +532,11 @@ function Tables() {
             Add Payment Details
           </Button>
         </Box>
-
-        {/* Conditionally Render Forms */}
         {showProductForm && <ProductForm />}
         {showInvoiceForm && <InvoiceForm />}
         {showLogisticsForm && <LogisticsForm />}
         {showPaymentForm && <PaymentForm />}
-
-        {/* save and submit */}
         <Grid container spacing={2} style={{ padding: "20px" }}>
-          {/* Cancel CAPA Plan */}
-
-          {/* Save and Submit Buttons */}
           <Grid
             item
             xs={12}
@@ -566,7 +579,7 @@ function Tables() {
                 padding: "8px 24px",
               }}
             >
-              Submit
+              Submit This whole as a form
             </Button>
           </Grid>
         </Grid>

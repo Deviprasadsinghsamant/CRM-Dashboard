@@ -22,8 +22,10 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import CustomerModal from "modals/Modal";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import { useOrderContext } from "../../../context/OrderContext";
 
 const InvoiceForm = () => {
+  const { orderId, generateOrderId } = useOrderContext();
   const [invoiceForms, setInvoiceForms] = useState([
     {
       orderId: 1,
@@ -38,6 +40,16 @@ const InvoiceForm = () => {
   const handleRemoveInvoiceForm = (id) => {
     setInvoiceForms(invoiceForms.filter((form) => form.id !== id));
   };
+  useEffect(() => {
+    const fetchOrderId = async () => {
+      if (!orderId) {
+        // Call the async function to generate the orderId
+        await generateOrderId();
+      }
+    };
+
+    fetchOrderId(); // Run the async function when the component mounts or when orderId is null
+  }, [orderId, generateOrderId]);
   return (
     <Grid item xs={12} md={12}>
       {/* Header Section */}
@@ -76,62 +88,32 @@ const InvoiceForm = () => {
             bgcolor="#f9f9f9"
           >
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
-                  label="Order Id"
+                  label="Order ID"
+                  name="orderId"
+                  disabled
+                  value={orderId || "Loading..."}
+                  InputProps={{ readOnly: true }}
                   fullWidth
-                  select
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "8px",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "gray",
-                      },
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiSelect-select": {
-                      padding: "0 10px",
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                  }}
-                >
-                  <MenuItem value="type1">id 1</MenuItem>
-                  <MenuItem value="type2">id 2</MenuItem>
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Invoice Id"
-                  fullWidth
-                  select
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "8px",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "gray",
-                      },
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiSelect-select": {
-                      padding: "0 10px",
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                  }}
-                >
-                  <MenuItem value="type1">id 1</MenuItem>
-                  <MenuItem value="type2">id 2</MenuItem>
-                </TextField>
+                <TextField label="Invoice Number" fullWidth />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField label="Product Name" fullWidth />
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Invoice Attachment"
+                  type="file"
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <i className="fas fa-file-alt"></i>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField

@@ -22,11 +22,13 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import CustomerModal from "modals/Modal";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import { useOrderContext } from "../../../context/OrderContext";
 
 const PaymentForm = () => {
   const [formData, setFormData] = useState({
     Notes: "",
   });
+  const { orderId, generateOrderId } = useOrderContext();
   const [paymentForms, setPaymentForms] = useState([
     {
       orderId: 1,
@@ -86,32 +88,15 @@ const PaymentForm = () => {
             bgcolor="#f9f9f9"
           >
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
-                  label="Order Id"
+                  label="Order ID"
+                  name="orderId"
+                  disabled
+                  value={orderId || "Loading..."}
+                  InputProps={{ readOnly: true }}
                   fullWidth
-                  select
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "8px",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "gray",
-                      },
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiSelect-select": {
-                      padding: "0 10px",
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                  }}
-                >
-                  <MenuItem value="type1">id 1</MenuItem>
-                  <MenuItem value="type2">id 2</MenuItem>
-                </TextField>
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField label="Payment Id" fullWidth />

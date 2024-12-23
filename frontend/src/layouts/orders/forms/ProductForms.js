@@ -22,8 +22,11 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import CustomerModal from "modals/Modal";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+// import { OrderContext } from "../../../context/OrderContext";
+import { useOrderContext } from "../../../context/OrderContext";
 
 const ProductForm = () => {
+  const { orderId, generateOrderId } = useOrderContext();
   const [productForms, setProductForms] = useState([
     {
       id: 1,
@@ -53,6 +56,17 @@ const ProductForm = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  // useEffect with async operation to handle order ID generation
+  useEffect(() => {
+    const fetchOrderId = async () => {
+      if (!orderId) {
+        // Call the async function to generate the orderId
+        await generateOrderId();
+      }
+    };
+
+    fetchOrderId(); // Run the async function when the component mounts or when orderId is null
+  }, [orderId, generateOrderId]);
   return (
     <Grid item xs={12} md={12}>
       {/* Header Section */}
@@ -60,25 +74,7 @@ const ProductForm = () => {
         <Typography variant="h4" fontWeight="bold" mt={4} mb={3}>
           Product Details
         </Typography>
-        {/* <Button
-          onClick={handleAddForm}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            color: "black",
-            width: "200px",
-            height: "47px",
-            padding: "0 15px",
-            fontSize: "13px",
-            position: "relative",
-            left: "25px",
-          }}
-        >
-          + Add Product Details
-        </Button> */}
       </Box>
-
-      {/* Form Section */}
       {productForms.length > 0 &&
         productForms.map((form, index) => (
           <Box
@@ -91,7 +87,17 @@ const ProductForm = () => {
             bgcolor="#f9f9f9"
           >
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Order ID"
+                  name="orderId"
+                  disabled
+                  value={orderId || "Loading..."}
+                  InputProps={{ readOnly: true }}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   label="Product Type"
                   fullWidth
@@ -118,7 +124,8 @@ const ProductForm = () => {
                   <MenuItem value="type2">Type 2</MenuItem>
                 </TextField>
               </Grid>
-              <Grid item xs={12} sm={6}>
+
+              <Grid item xs={12} sm={4}>
                 <TextField label="Product Name" fullWidth />
               </Grid>
               <Grid item xs={12} sm={6}>
