@@ -388,6 +388,15 @@ function Tables() {
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField
+                label="GST Number"
+                name="gstNumber"
+                value={formData.gstNumber}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
                 label="Site/Delivery Address"
                 name="deliveryAddress"
                 value={formData.deliveryAddress}
@@ -402,17 +411,6 @@ function Tables() {
                 label="Bill To"
                 name="billTo"
                 value={formData.billTo}
-                onChange={handleInputChange}
-                multiline
-                rows={4}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                label="GST Number"
-                name="gstNumber"
-                value={formData.gstNumber}
                 onChange={handleInputChange}
                 multiline
                 rows={4}
