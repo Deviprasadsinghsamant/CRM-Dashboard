@@ -5,79 +5,112 @@ import {
   Button,
   Container,
   IconButton,
-  InputAdornment,
   MenuItem,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
-import dayjs from "dayjs"; //ADDITION
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import axios from "axios";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import Autocomplete from "@mui/material/Autocomplete";
-import axios from "axios";
-import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import CustomerModal from "modals/Modal";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
-import { useOrderContext } from "../../../context/OrderContext";
+import { useOrderContext } from "context/OrderContext";
+import dayjs from "dayjs";
 
 const PaymentForm = () => {
-  const [formData, setFormData] = useState({
-    Notes: "",
-  });
   const { orderId, generateOrderId } = useOrderContext();
   const [paymentForms, setPaymentForms] = useState([
     {
-      orderId: 1,
-      paymentId: "",
+      // id: Date.now(),
+
       paymentType: "",
-      paymentDate: "",
+      paymentDate: dayjs().format("YYYY-MM-DD"),
       paymentMethod: "",
       amountReceived: "",
       notes: "",
     },
   ]);
+
   const handleAddPaymentForm = () => {
-    setPaymentForms([...paymentForms, { id: Date.now() }]);
+    setPaymentForms([
+      ...paymentForms,
+      {
+        orderId: orderId,
+        paymentType: "",
+        paymentDate: "",
+        paymentMethod: "",
+        amountReceived: "",
+        notes: "",
+      },
+    ]);
   };
+
   const handleRemovePaymentForm = (id) => {
     setPaymentForms(paymentForms.filter((form) => form.id !== id));
   };
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-  return (
-    <Grid item xs={12} md={12}>
-      {/* Header Section */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} px={2}>
-        <Typography variant="h4" fontWeight="bold" mt={4} mb={3}>
-          Payments Details
-        </Typography>
-        {/* <Button
-          onClick={handleAddPaymentForm}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            color: "black",
-            width: "200px",
-            height: "47px",
-            padding: "0 15px",
-            fontSize: "13px",
-            position: "relative",
-            left: "25px",
-          }}
-        >
-          + Add Payments Details
-        </Button> */}
-      </Box>
 
-      {/* Form Section */}
-      {paymentForms.length > 0 &&
-        paymentForms.map((form, index) => (
+  const handleInputChange = (id, name, value) => {
+    setPaymentForms((prevForms) =>
+      prevForms.map((form) => (form.id === id ? { ...form, [name]: value } : form))
+    );
+  };
+
+  // GENERATE ORER id if not generated
+  useEffect(() => {
+    const fetchOrderId = async () => {
+      if (!orderId) {
+        await generateOrderId();
+      }
+    };
+    fetchOrderId();
+  }, [orderId, generateOrderId]);
+
+  //fixes
+  const handleSubmit = async () => {
+    if (!orderId) {
+      alert("Order ID is still generating. Please wait.");
+      return;
+    }
+
+    try {
+      const paymentData = paymentForms.map((form) => ({
+        orderId,
+        paymentType: form.paymentType,
+        paymentDate: form.paymentDate,
+        paymentMethod: form.paymentMethod,
+        amountReceived: form.amountReceived,
+        notes: form.notes,
+      }));
+
+      //validate before sending
+      for (const form of paymentData) {
+        if (!form.paymentType || !form.paymentDate || !form.amountReceived || !orderId) {
+          alert("Please fill out all required fields.");
+          return;
+        }
+      }
+
+      const response = await axios.post("http://localhost:8080/payments", paymentData);
+      alert("Payments created successfully!");
+      console.log(response.data);
+    } catch (err) {
+      console.error("Error creating payments:", err.response?.data || err);
+      alert("Error creating payments.");
+    }
+  };
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Grid item xs={12} md={12}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} px={2}>
+          <Typography variant="h4" fontWeight="bold" mt={4} mb={3}>
+            Payment Details
+          </Typography>
+        </Box>
+
+        {paymentForms.map((form) => (
           <Box
             key={form.id}
             mb={4}
@@ -92,58 +125,51 @@ const PaymentForm = () => {
                 <TextField
                   label="Order ID"
                   name="orderId"
-                  disabled
-                  value={orderId || "Loading..."}
-                  InputProps={{ readOnly: true }}
+                  value={form.orderId}
+                  onChange={(e) => handleInputChange(form.id, "orderId", e.target.value)}
                   fullWidth
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField label="Payment Id" fullWidth />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Payment Type"
+                  name="paymentType"
+                  value={form.paymentType}
+                  onChange={(e) => handleInputChange(form.id, "paymentType", e.target.value)}
                   fullWidth
                   select
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "8px",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "gray",
-                      },
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiSelect-select": {
-                      padding: "0 10px",
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                  }}
                 >
-                  <MenuItem value="type1">Full Payment</MenuItem>
-                  <MenuItem value="type2">Part Payment</MenuItem>
-                  <MenuItem value="type2">Advanced</MenuItem>
+                  <MenuItem value="Full Payment">Full Payment</MenuItem>
+                  <MenuItem value="Part Payment">Part Payment</MenuItem>
+                  <MenuItem value="Advance">Advance</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
+                <DatePicker
                   label="Payment Date"
-                  fullWidth
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
+                  value={form.paymentDate ? dayjs(form.paymentDate) : dayjs()}
+                  onChange={(newValue) =>
+                    handleInputChange(form.id, "paymentDate", dayjs(newValue).format("YYYY-MM-DD"))
+                  }
+                  renderInput={(params) => <TextField {...params} fullWidth />}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField label="Payment Method" fullWidth />
+                <TextField
+                  label="Payment Method"
+                  name="paymentMethod"
+                  value={form.paymentMethod}
+                  onChange={(e) => handleInputChange(form.id, "paymentMethod", e.target.value)}
+                  fullWidth
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   type="number"
                   label="Amount Received"
+                  name="amountReceived"
+                  value={form.amountReceived}
+                  onChange={(e) => handleInputChange(form.id, "amountReceived", e.target.value)}
                   InputProps={{ inputProps: { min: 0 } }}
                   fullWidth
                 />
@@ -152,46 +178,42 @@ const PaymentForm = () => {
                 <TextField
                   label="Notes"
                   name="notes"
+                  value={form.notes}
+                  onChange={(e) => handleInputChange(form.id, "notes", e.target.value)}
                   placeholder="Enter a description"
                   multiline
-                  rows={6}
-                  inputProps={{ maxLength: 150 }}
+                  rows={3}
                   fullWidth
-                  onChange={handleInputChange}
-                  variant="outlined"
                 />
-                <Typography
-                  variant="caption"
-                  color="textSecondary"
-                  style={{ float: "right", marginTop: "4px" }}
-                >
-                  {formData.description?.length || 0}/1500
-                </Typography>
               </Grid>
             </Grid>
             <Box display="flex" justifyContent="flex-end" mt={2}>
-              <Button
-                variant="contained"
-                style={{
-                  display: "flex-start",
-                  background: "linear-gradient(to right, #6a11cb, #2575fc)",
-                  color: "#fff",
-                  textTransform: "none",
-                  padding: "8px 24px",
-                }}
-              >
-                Save
-              </Button>
               <IconButton onClick={() => handleRemovePaymentForm(form.id)} color="error">
                 <RemoveCircleIcon />
               </IconButton>
-              <IconButton onClick={() => handleAddPaymentForm(form.id)} color="error">
+              <IconButton onClick={handleAddPaymentForm} color="primary">
                 <AddCircleIcon />
               </IconButton>
             </Box>
           </Box>
         ))}
-    </Grid>
+        <Box display="flex" justifyContent="center" mt={4}>
+          <Button
+            variant="contained"
+            style={{
+              display: "flex-start",
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "#fff",
+              textTransform: "none",
+              padding: "8px 24px",
+            }}
+            onClick={handleSubmit}
+          >
+            Submit Payments
+          </Button>
+        </Box>
+      </Grid>
+    </LocalizationProvider>
   );
 };
 

@@ -215,7 +215,7 @@ function Tables() {
       //v5 to reset form
       resetForm();
       //v5 to reset order
-      await generateOrderId();
+      // await generateOrderId();
     } catch (error) {
       console.error("Error creating order:", error);
       alert("Failed to create the order.");
@@ -247,17 +247,7 @@ function Tables() {
       <Paper elevation={3} style={{ padding: "2rem" }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
           <Typography variant="h4">Order Management</Typography>
-          {/* <Button
-            variant="contained"
-            style={{
-              background: "linear-gradient(to right, #6a11cb, #2575fc)",
-              color: "white",
-            }}
-            onClick={handleSubmit}
-          >
-            Submit Order
-          </Button> */}
-          {/* v5 added checks */}
+
           <Button
             variant="contained"
             disabled={
@@ -407,7 +397,7 @@ function Tables() {
                 style={{
                   background: "linear-gradient(to right, #6a11cb, #2575fc)",
                   color: "white",
-                  height: "47px", // Match the height of the Autocomplete
+                  height: "47px", // heiiight mathch
                   padding: "0 15px",
                   fontSize: "12px",
                   width: "250px",

@@ -1,22 +1,53 @@
 const Invoice = require("../Models/invoices");
+const Order = require("../Models/orders");
 
-// Create a new invoice
 exports.createInvoice = async (req, res) => {
+  // console.log("Request Body:", req.body); // Log the request body (done)
+
   try {
-    const { orderId, invoiceId, invoiceNumber, invoiceDate } = req.body;
+    ///vansh's method
+    //arrray of object
+    const invoices = req.body; //stores the array of objs
+    //custom check
+    if (!Array.isArray(invoices)) {
+      return res.status(400).json({ message: "expected an array of invoices" });
+    }
 
-    //creating a new  invoice document
-    const newInvoice = new Invoice({
-      orderId,
-      invoiceId,
-      invoiceNumber,
-      invoiceDate,
-    });
+    const createdInvoices = [];
 
-    //saving it to the db
-    const savedInvoice = await newInvoice.save();
-    res.status(201).json(savedInvoice);
+    for (const invoiceData of invoices) {
+      const { orderId, invoiceId, invoiceNumber, invoiceDate } = invoiceData;
+
+      //check missing required fields
+      if (!orderId || !invoiceNumber || !invoiceDate) {
+        return res.status(400).json({ message: "Missing required fields." });
+      }
+
+      //query the Orderschema to find the order
+      const order = await Order.findOne({ orderId: orderId }); //string used
+
+      if (!order) {
+        return res
+          .status(400)
+          .json({ message: `Order with ID ${orderId} not found.` });
+      }
+
+      //creating new invoice
+      const newInvoice = new Invoice({
+        orderId: order._id, //objid of the matched order
+        invoiceId: invoiceId || "generated-id", //will add later
+        invoiceNumber,
+        invoiceDate: new Date(invoiceDate), //convert to date
+      });
+
+      const savedInvoice = await newInvoice.save();
+      createdInvoices.push(savedInvoice);
+    }
+
+    //respond with the created invoices
+    res.status(201).json(createdInvoices);
   } catch (err) {
+    console.error("Error creating invoice:", err);
     res
       .status(500)
       .json({ message: "Error creating invoice", error: err.message });

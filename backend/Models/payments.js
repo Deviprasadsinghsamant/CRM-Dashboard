@@ -3,8 +3,10 @@ const mongoose = require("mongoose");
 const PaymentSchema = new mongoose.Schema(
   {
     orderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Order",
+      // type: mongoose.Schema.Types.ObjectId,
+      type: String,
+      unique: true,
+      // ref: "Order",
       required: true,
     },
     paymentId: {
@@ -12,7 +14,7 @@ const PaymentSchema = new mongoose.Schema(
     },
     paymentType: {
       type: String,
-      enum: ["Full Payment", "Part Payment", "Advanced"],
+      enum: ["Full Payment", "Part Payment", "Advanced", "Paid"],
       required: true,
     }, //radio button
     paymentDate: {

@@ -1,34 +1,25 @@
+//v6 major
 import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import {
   Box,
   Button,
-  Container,
   IconButton,
   InputAdornment,
   MenuItem,
-  Paper,
   TextField,
   Typography,
 } from "@mui/material";
-import dayjs from "dayjs"; //ADDITION
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import Autocomplete from "@mui/material/Autocomplete";
-import axios from "axios";
-import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import CustomerModal from "modals/Modal";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import axios from "axios";
 import { useOrderContext } from "../../../context/OrderContext";
 
 const LogisticsForm = () => {
   const { orderId, generateOrderId } = useOrderContext();
   const [logisticsForms, setLogisticsForms] = useState([
     {
-      orderId: 1,
+      id: Date.now(),
       itemsDispatched: "",
       materialDispatchedDate: "",
       courierPartnerDetails: "",
@@ -37,40 +28,97 @@ const LogisticsForm = () => {
       amount: "",
     },
   ]);
-  const handleAddLogisticsForm = () => {
-    setLogisticsForms([...logisticsForms, { id: Date.now() }]);
+
+  //form submission
+  const handleSubmitLogistics = async () => {
+    if (!orderId) {
+      alert("Order ID is still generating. Please wait.");
+      return;
+    }
+
+    const isValid = logisticsForms.every(
+      (form) =>
+        form.itemsDispatched &&
+        form.materialDispatchedDate &&
+        form.courierPartnerDetails &&
+        form.docketNumber &&
+        form.paymentType &&
+        form.amount
+    );
+
+    if (!isValid) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      const logisticsData = logisticsForms.map((form) => ({
+        orderId,
+        itemsDispatched: form.itemsDispatched,
+        materialDispatchedDate: form.materialDispatchedDate,
+        courierPartnerDetails: form.courierPartnerDetails,
+        docketNumber: form.docketNumber,
+        paymentType: form.paymentType,
+        amount: form.amount,
+      }));
+
+      console.log("Logistics Data:", logisticsData);
+
+      const response = await axios.post("http://localhost:8080/logistics", logisticsData);
+      alert("Logistics details submitted successfully!");
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error submitting the Logistics Form:", error);
+      alert("Failed to submit logistics details.");
+    }
   };
+
+  //add a new logistic form
+  const handleAddLogisticsForm = () => {
+    setLogisticsForms([
+      ...logisticsForms,
+      {
+        id: Date.now(),
+        itemsDispatched: "",
+        materialDispatchedDate: "",
+        courierPartnerDetails: "",
+        docketNumber: "",
+        paymentType: "",
+        amount: "",
+      },
+    ]);
+  };
+
   const handleRemoveLogisticsForm = (id) => {
     setLogisticsForms(logisticsForms.filter((form) => form.id !== id));
   };
+
+  const handleInputChange = (e, id) => {
+    const { name, value } = e.target;
+    setLogisticsForms((prevForms) =>
+      prevForms.map((form) => (form.id === id ? { ...form, [name]: value } : form))
+    );
+  };
+  //generate if not generated
+  useEffect(() => {
+    const fetchOrderId = async () => {
+      if (!orderId) {
+        await generateOrderId();
+      }
+    };
+    fetchOrderId();
+  }, [orderId, generateOrderId]);
+
   return (
     <Grid item xs={12} md={12}>
-      {/* Header Section */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} px={2}>
         <Typography variant="h4" fontWeight="bold" mt={4} mb={3}>
           Logistics Details
         </Typography>
-        {/* <Button
-          onClick={handleAddLogisticsForm}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            color: "black",
-            width: "200px",
-            height: "47px",
-            padding: "0 15px",
-            fontSize: "13px",
-            position: "relative",
-            left: "25px",
-          }}
-        >
-          + Add Logistics Details
-        </Button> */}
       </Box>
 
-      {/* Form Section */}
       {logisticsForms.length > 0 &&
-        logisticsForms.map((form, index) => (
+        logisticsForms.map((form) => (
           <Box
             key={form.id}
             mb={4}
@@ -85,64 +133,83 @@ const LogisticsForm = () => {
                 <TextField
                   label="Order ID"
                   name="orderId"
-                  disabled
                   value={orderId || "Loading..."}
                   InputProps={{ readOnly: true }}
                   fullWidth
                 />
               </Grid>
-
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Material Dispatched Date"
-                  fullWidth
+                  name="materialDispatchedDate"
                   type="date"
+                  value={form.materialDispatchedDate}
+                  onChange={(e) => handleInputChange(e, form.id)}
                   InputLabelProps={{ shrink: true }}
+                  fullWidth
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField label="Courier Partner Details" fullWidth />
+                <TextField
+                  label="Courier Partner Details"
+                  name="courierPartnerDetails"
+                  value={form.courierPartnerDetails}
+                  onChange={(e) => handleInputChange(e, form.id)}
+                  fullWidth
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField label="Docket Number" fullWidth />
+                <TextField
+                  label="Docket Number"
+                  name="docketNumber"
+                  value={form.docketNumber}
+                  onChange={(e) => handleInputChange(e, form.id)}
+                  fullWidth
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Payment Type"
-                  fullWidth
+                  name="paymentType"
+                  value={form.paymentType}
+                  onChange={(e) => handleInputChange(e, form.id)}
                   select
+                  fullWidth
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "8px",
+                      height: "47px !important",
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "gray",
+                        height: "47px !important",
                       },
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                    "& .MuiSelect-select": {
-                      padding: "0 10px",
-                      height: "40px !important",
-                      display: "flex",
-                      alignItems: "center",
                     },
                   }}
                 >
-                  <MenuItem value="type1">To Pay</MenuItem>
-                  <MenuItem value="type2">Paid</MenuItem>
+                  {/* things to be added */}
+                  <MenuItem value="To Pay">Advanced</MenuItem>
+                  <MenuItem value="Paid">Paid</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   type="number"
                   label="Amount"
+                  name="amount"
+                  value={form.amount}
+                  onChange={(e) => handleInputChange(e, form.id)}
                   InputProps={{ inputProps: { min: 0 } }}
                   fullWidth
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField label="Items Dispatched" fullWidth multiline rows={4} />
+                <TextField
+                  label="Items Dispatched"
+                  name="itemsDispatched"
+                  value={form.itemsDispatched}
+                  onChange={(e) => handleInputChange(e, form.id)}
+                  fullWidth
+                  multiline
+                  rows={4}
+                />
               </Grid>
             </Grid>
             <Box display="flex" justifyContent="flex-end" mt={2}>
@@ -155,13 +222,14 @@ const LogisticsForm = () => {
                   textTransform: "none",
                   padding: "8px 24px",
                 }}
+                onClick={handleSubmitLogistics}
               >
-                Save
+                Submit Logistics
               </Button>
               <IconButton onClick={() => handleRemoveLogisticsForm(form.id)} color="error">
                 <RemoveCircleIcon />
               </IconButton>
-              <IconButton onClick={() => handleAddLogisticsForm(form.id)} color="error">
+              <IconButton onClick={handleAddLogisticsForm} color="primary">
                 <AddCircleIcon />
               </IconButton>
             </Box>

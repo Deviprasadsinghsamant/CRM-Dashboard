@@ -1,32 +1,64 @@
 const Payment = require("../Models/payments");
+const Order = require("../Models/orders");
 
-// Create a new payment
-exports.createPayment = async (req, res) => {
+exports.createPayments = async (req, res) => {
   try {
-    const {
-      orderId,
-      paymentType,
-      paymentDate,
-      paymentMethod,
-      amountReceived,
-      notes,
-    } = req.body;
+    const payments = req.body;
 
-    const newPayment = new Payment({
-      orderId,
-      paymentType,
-      paymentDate,
-      paymentMethod,
-      amountReceived,
-      notes,
-    });
+    const isValidDate = (date) => !isNaN(new Date(date).getTime());
 
-    const savedPayment = await newPayment.save();
-    res.status(201).json(savedPayment);
+    const createdPayments = [];
+    for (const paymentData of payments) {
+      const {
+        orderId,
+        paymentType,
+        paymentDate,
+        paymentMethod,
+        amountReceived,
+        notes,
+      } = paymentData;
+
+      if (
+        !orderId ||
+        !paymentType ||
+        !paymentDate ||
+        !isValidDate(paymentDate) ||
+        !amountReceived
+      ) {
+        return res.status(400).json({
+          message: "Missing or invalid required fields in payment entry.",
+          details: {
+            orderId: !orderId ? "Order ID is required" : undefined,
+            paymentType: !paymentType ? "Payment Type is required" : undefined,
+            paymentDate: !isValidDate(paymentDate)
+              ? "Invalid Payment Date"
+              : undefined,
+            amountReceived: !amountReceived
+              ? "Amount Received is required"
+              : undefined,
+          },
+        });
+      }
+
+      const newPayment = new Payment({
+        orderId,
+        paymentType,
+        paymentDate: new Date(paymentDate),
+        paymentMethod,
+        amountReceived,
+        notes,
+      });
+
+      const savedPayment = await newPayment.save();
+      createdPayments.push(savedPayment);
+    }
+
+    res.status(201).json(createdPayments);
   } catch (err) {
+    console.error("Error creating payments:", err);
     res
       .status(500)
-      .json({ message: "Error creating payment", error: err.message });
+      .json({ message: "Error creating payments", error: err.message });
   }
 };
 

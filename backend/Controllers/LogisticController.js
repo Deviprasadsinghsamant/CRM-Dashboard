@@ -1,38 +1,70 @@
-const Logistics = require("../Models/logistics");
-
-// Create a new logistics entry
+const Order = require("../Models/orders");
+const Logistic = require("../Models/logistics");
 exports.createLogistics = async (req, res) => {
   try {
-    const {
-      orderId,
-      itemsDispatched,
-      materialDispatchedDate,
-      courierPartnerDetails,
-      docketNumber,
-      paymentType,
-      amount,
-    } = req.body;
+    const logistics = req.body;
 
-    const newLogistics = new Logistics({
-      orderId,
-      itemsDispatched,
-      materialDispatchedDate,
-      courierPartnerDetails,
-      docketNumber,
-      paymentType,
-      amount,
-    });
+    //custom check for array of objects
+    if (!Array.isArray(logistics)) {
+      return res
+        .status(400)
+        .json({ message: "Expected an array of logistics entries." });
+    }
 
-    const savedLogistics = await newLogistics.save();
-    res.status(201).json(savedLogistics);
+    const createdLogistics = [];
+
+    for (const logisticData of logistics) {
+      const {
+        orderId,
+        courierPartnerDetails,
+        paymentType,
+        itemsDispatched,
+        docketNumber,
+        materialDispatchedDate,
+        amount,
+      } = logisticData;
+
+      //checkor missing required fields
+      if (!orderId || !docketNumber || !materialDispatchedDate) {
+        return res.status(400).json({
+          message:
+            "Missing required fields: orderId, docketNumber, or materialDispatchedDate.",
+        });
+      }
+
+      //find the matching order
+      const order = await Order.findOne({ orderId: orderId });
+
+      if (!order) {
+        return res
+          .status(400)
+          .json({ message: `Order with ID ${orderId} not found.` });
+      }
+
+      //a new logistics entry
+      const newLogistic = new Logistic({
+        orderId: order._id,
+        itemsDispatched,
+        materialDispatchedDate: new Date(materialDispatchedDate), // Convert to date
+        courierPartnerDetails,
+        docketNumber,
+        paymentType,
+        amount,
+      });
+
+      const savedLogistic = await newLogistic.save();
+      createdLogistics.push(savedLogistic);
+    }
+
+    res.status(201).json(createdLogistics);
   } catch (err) {
+    console.error("Error creating logistics entry:", err);
     res
       .status(500)
       .json({ message: "Error creating logistics entry", error: err.message });
   }
 };
 
-// Get all logistics entries
 exports.getAllLogistics = async (req, res) => {
   try {
     const logistics = await Logistics.find().populate("orderId");
@@ -45,7 +77,6 @@ exports.getAllLogistics = async (req, res) => {
   }
 };
 
-// Get a specific logistics entry by ID
 exports.getLogisticsById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -63,7 +94,6 @@ exports.getLogisticsById = async (req, res) => {
   }
 };
 
-// Update a specific logistics entry by ID
 exports.updateLogistics = async (req, res) => {
   try {
     const { id } = req.params;
@@ -103,7 +133,6 @@ exports.updateLogistics = async (req, res) => {
   }
 };
 
-// Delete a specific logistics entry by ID
 exports.deleteLogistics = async (req, res) => {
   try {
     const { id } = req.params;
