@@ -3,22 +3,86 @@ const Order = require("../Models/orders");
 const Customer = require("../Models/customers");
 
 const router = express.Router();
+//below was fine v5
+// router.post("/", async (req, res) => {
+//   try {
+//     const { customer, ...orderData } = req.body;
 
+//     //validdate the customer id
+//     const existingCustomer = await Customer.findById(customer);
+//     if (!existingCustomer) {
+//       return res.status(400).json({ error: "Invalid customer ID" });
+//     }
+
+//     const newOrder = new Order({ ...orderData, customer });
+//     const savedOrder = await newOrder.save();
+//     res.status(201).json(savedOrder);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+//new v5
 router.post("/", async (req, res) => {
+  const {
+    orderId,
+    orderDate,
+    bookedBy,
+    startDate,
+    completionDate,
+    paymentDueDate,
+    projectHead,
+    customer,
+    address,
+    billTo,
+    quotationNumber,
+    quotationDate,
+    poPiNumber,
+    poPiDate,
+    transportationCost,
+    amountWithGST,
+    totalAmount,
+  } = req.body;
+
   try {
-    const { customer, ...orderData } = req.body;
+    // Check for duplicate orderId
+    // const existingOrder = await Order.findOne({ orderId });
+    // if (existingOrder) {
+    //   return res.status(400).json({ error: "Order ID already exists." });
+    // }
 
-    //validdate the customer id
-    const existingCustomer = await Customer.findById(customer);
-    if (!existingCustomer) {
-      return res.status(400).json({ error: "Invalid customer ID" });
-    }
+    // // Validate Customer ID
+    // const existingCustomer = await Customer.findById(customer);
+    // if (!existingCustomer) {
+    //   return res.status(404).json({ error: "Customer not found." });
+    // }
 
-    const newOrder = new Order({ ...orderData, customer });
+    // Create new order
+    const newOrder = new Order({
+      orderId,
+      orderDate,
+      bookedBy,
+      startDate,
+      completionDate,
+      paymentDueDate,
+      projectHead,
+      customer,
+      address,
+      billTo,
+      quotationNumber,
+      quotationDate,
+      poPiNumber,
+      poPiDate,
+      transportationCost,
+      amountWithGST,
+      totalAmount,
+    });
+
     const savedOrder = await newOrder.save();
     res.status(201).json(savedOrder);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error saving order:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

@@ -56,7 +56,7 @@ function Tables() {
     //newlines watchout
     // orderId: "",
     bookedBy: "Administrator",
-    projectHead: "",
+    projectHead: "pro1",
     //below is changed
     // customer: "",
     contactPerson: "",
@@ -148,17 +148,55 @@ function Tables() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  //below v5 reset form
+  const resetForm = () => {
+    setOrderDate(dayjs());
+    setOrderStartDate(null);
+    setOrderCompletionDate(null);
+    setPaymentDueDate(null);
+    setQuotationDate(null);
+    setPoPiDate(null);
+    setSelectedCustomer(null);
+    setFormData({
+      bookedBy: "Administrator",
+      projectHead: "pro1",
+      contactPerson: "",
+      mobileNumber: "",
+      email: "",
+      deliveryAddress: "",
+      gstNumber: "",
+      billTo: "",
+      quotationNumber: "",
+      poPiNumber: "",
+    });
+  };
 
   const handleSubmit = async () => {
+    //v5 add ifs
+    if (!orderId) {
+      alert("Order ID is still generating. Please wait.");
+      return;
+    }
+
+    if (!selectedCustomer) {
+      alert("Please select a customer.");
+      return;
+    }
+
+    if (!orderDate || !orderStartDate || !orderCompletionDate || !paymentDueDate) {
+      alert("Please fill all the required dates.");
+      return;
+    }
     try {
       const formattedData = {
         orderId,
         //below new add
         customer: selectedCustomer?._id || "", // Send customer ID
         orderDate: orderDate.toISOString().split("T")[0],
-        bookedBy: "Administrator",
-        startDate: startDate ? startDate.format("YYYY-MM-DD") : null,
-        completionDate: completionDate ? completionDate.format("YYYY-MM-DD") : null,
+        bookedBy: formData.bookedBy || "Administrator",
+        projectHead: formData.projectHead || "pro1",
+        startDate: orderStartDate ? orderStartDate.format("YYYY-MM-DD") : null,
+        completionDate: orderCompletionDate ? orderCompletionDate.format("YYYY-MM-DD") : null,
         paymentDueDate: paymentDueDate ? paymentDueDate.format("YYYY-MM-DD") : null,
         quotationDate: quotationDate ? quotationDate.format("YYYY-MM-DD") : null,
         poPiDate: poPiDate ? poPiDate.format("YYYY-MM-DD") : null,
@@ -174,6 +212,10 @@ function Tables() {
       const response = await axios.post("http://localhost:8080/orders", formattedData);
       alert("Order created successfully!");
       console.log(response.data);
+      //v5 to reset form
+      resetForm();
+      //v5 to reset order
+      await generateOrderId();
     } catch (error) {
       console.error("Error creating order:", error);
       alert("Failed to create the order.");
@@ -205,8 +247,26 @@ function Tables() {
       <Paper elevation={3} style={{ padding: "2rem" }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
           <Typography variant="h4">Order Management</Typography>
+          {/* <Button
+            variant="contained"
+            style={{
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "white",
+            }}
+            onClick={handleSubmit}
+          >
+            Submit Order
+          </Button> */}
+          {/* v5 added checks */}
           <Button
             variant="contained"
+            disabled={
+              !orderId ||
+              !selectedCustomer ||
+              !orderStartDate ||
+              !orderCompletionDate ||
+              !paymentDueDate
+            }
             style={{
               background: "linear-gradient(to right, #6a11cb, #2575fc)",
               color: "white",
