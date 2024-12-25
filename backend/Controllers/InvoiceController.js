@@ -1,16 +1,13 @@
 const Invoice = require("../Models/invoices");
 const Order = require("../Models/orders");
+const { v4: uuidv4 } = require("uuid");
 
 exports.createInvoice = async (req, res) => {
-  // console.log("Request Body:", req.body); // Log the request body (done)
-
   try {
-    ///vansh's method
-    //arrray of object
-    const invoices = req.body; //stores the array of objs
-    //custom check
+    const invoices = req.body; // Array of invoice objects
+
     if (!Array.isArray(invoices)) {
-      return res.status(400).json({ message: "expected an array of invoices" });
+      return res.status(400).json({ message: "Expected an array of invoices" });
     }
 
     const createdInvoices = [];
@@ -18,13 +15,13 @@ exports.createInvoice = async (req, res) => {
     for (const invoiceData of invoices) {
       const { orderId, invoiceId, invoiceNumber, invoiceDate } = invoiceData;
 
-      //check missing required fields
+      // Check for missing required fields
       if (!orderId || !invoiceNumber || !invoiceDate) {
         return res.status(400).json({ message: "Missing required fields." });
       }
 
-      //query the Orderschema to find the order
-      const order = await Order.findOne({ orderId: orderId }); //string used
+      // Find the order by orderId
+      const order = await Order.findOne({ orderId: orderId });
 
       if (!order) {
         return res
@@ -32,19 +29,19 @@ exports.createInvoice = async (req, res) => {
           .json({ message: `Order with ID ${orderId} not found.` });
       }
 
-      //creating new invoice
+      // Create a new invoice
       const newInvoice = new Invoice({
-        orderId: order._id, //objid of the matched order
-        invoiceId: invoiceId || "generated-id", //will add later
+        orderId: order._id, // ObjectId of the matched order
+        invoiceId: invoiceId || uuidv4(), // Generate unique ID if not provided
         invoiceNumber,
-        invoiceDate: new Date(invoiceDate), //convert to date
+        invoiceDate: new Date(invoiceDate), // Convert to Date object
       });
 
       const savedInvoice = await newInvoice.save();
       createdInvoices.push(savedInvoice);
     }
 
-    //respond with the created invoices
+    // Respond with the created invoices
     res.status(201).json(createdInvoices);
   } catch (err) {
     console.error("Error creating invoice:", err);

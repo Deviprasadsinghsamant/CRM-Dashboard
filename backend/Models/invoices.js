@@ -8,7 +8,7 @@ const InvoiceSchema = new mongoose.Schema(
       // // required: true,
       type: String, // Ensure this is a string
       required: true,
-      unique: true,
+      // unique: true,
     },
     invoiceId: {
       type: String,
