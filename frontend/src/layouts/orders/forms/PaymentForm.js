@@ -24,7 +24,7 @@ const PaymentForm = () => {
   const [paymentForms, setPaymentForms] = useState([
     {
       // id: Date.now(),
-
+      orderId,
       paymentType: "",
       paymentDate: dayjs().format("YYYY-MM-DD"),
       paymentMethod: "",
@@ -76,7 +76,7 @@ const PaymentForm = () => {
 
     try {
       const paymentData = paymentForms.map((form) => ({
-        orderId,
+        orderId: form.orderId,
         paymentType: form.paymentType,
         paymentDate: form.paymentDate,
         paymentMethod: form.paymentMethod,
@@ -137,6 +137,14 @@ const PaymentForm = () => {
                   value={form.paymentType}
                   onChange={(e) => handleInputChange(form.id, "paymentType", e.target.value)}
                   fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      height: "47px !important",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        height: "47px !important",
+                      },
+                    },
+                  }}
                   select
                 >
                   <MenuItem value="Full Payment">Full Payment</MenuItem>
@@ -144,16 +152,7 @@ const PaymentForm = () => {
                   <MenuItem value="Advance">Advance</MenuItem>
                 </TextField>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <DatePicker
-                  label="Payment Date"
-                  value={form.paymentDate ? dayjs(form.paymentDate) : dayjs()}
-                  onChange={(newValue) =>
-                    handleInputChange(form.id, "paymentDate", dayjs(newValue).format("YYYY-MM-DD"))
-                  }
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Payment Method"
@@ -172,6 +171,16 @@ const PaymentForm = () => {
                   onChange={(e) => handleInputChange(form.id, "amountReceived", e.target.value)}
                   InputProps={{ inputProps: { min: 0 } }}
                   fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <DatePicker
+                  label="Payment Date"
+                  value={form.paymentDate ? dayjs(form.paymentDate) : dayjs()}
+                  onChange={(newValue) =>
+                    handleInputChange(form.id, "paymentDate", dayjs(newValue).format("YYYY-MM-DD"))
+                  }
+                  renderInput={(params) => <TextField {...params} fullWidth />}
                 />
               </Grid>
               <Grid item xs={12}>

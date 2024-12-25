@@ -35,6 +35,8 @@ function Tables() {
   // const { orderId, generateOrderId } = useOrderContext();
   // const orderId = generateOrderId();
   const { orderId, generateOrderId } = useOrderContext();
+  //v8
+  const [activeForm, setActiveForm] = useState(""); // State to track active form
 
   // States for all input fields
   //below line helped running if it doesnt help then revert
@@ -114,7 +116,7 @@ function Tables() {
       }
     };
     fetchCustomers();
-  }, []);
+  });
 
   //below is for customer selection
   const handleCustomerChange = (event, newValue) => {
@@ -223,22 +225,37 @@ function Tables() {
   };
 
   //NEW ADD TOGGLE
-  const toggleFormVisibility = (form) => {
-    switch (form) {
+  // const toggleFormVisibility = (form) => {
+  //   switch (form) {
+  //     case "product":
+  //       setShowProductForm(!showProductForm);
+  //       break;
+  //     case "invoice":
+  //       setShowInvoiceForm(!showInvoiceForm);
+  //       break;
+  //     case "logistics":
+  //       setShowLogisticsForm(!showLogisticsForm);
+  //       break;
+  //     case "payment":
+  //       setShowPaymentForm(!showPaymentForm);
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // };
+  //v8
+  const renderForm = () => {
+    switch (activeForm) {
       case "product":
-        setShowProductForm(!showProductForm);
-        break;
+        return <ProductForm />;
       case "invoice":
-        setShowInvoiceForm(!showInvoiceForm);
-        break;
+        return <InvoiceForm />;
       case "logistics":
-        setShowLogisticsForm(!showLogisticsForm);
-        break;
+        return <LogisticsForm />;
       case "payment":
-        setShowPaymentForm(!showPaymentForm);
-        break;
+        return <PaymentForm />;
       default:
-        break;
+        return <div></div>;
     }
   };
 
@@ -542,7 +559,7 @@ function Tables() {
               color: "white",
             }}
             startIcon={<AddCircleIcon />}
-            onClick={() => toggleFormVisibility("product")}
+            onClick={() => setActiveForm("product")}
           >
             Add Product Details
           </Button>
@@ -553,7 +570,7 @@ function Tables() {
               color: "white",
             }}
             startIcon={<AddCircleIcon />}
-            onClick={() => toggleFormVisibility("invoice")}
+            onClick={() => setActiveForm("invoice")}
           >
             Add Invoice Details
           </Button>
@@ -564,7 +581,7 @@ function Tables() {
               color: "white",
             }}
             startIcon={<AddCircleIcon />}
-            onClick={() => toggleFormVisibility("logistics")}
+            onClick={() => setActiveForm("logistics")}
           >
             Add Logistics Details
           </Button>
@@ -575,15 +592,18 @@ function Tables() {
               color: "white",
             }}
             startIcon={<AddCircleIcon />}
-            onClick={() => toggleFormVisibility("payment")}
+            onClick={() => setActiveForm("payment")}
           >
             Add Payment Details
           </Button>
         </Box>
-        {showProductForm && <ProductForm />}
+        {/* {showProductForm && <ProductForm />}
         {showInvoiceForm && <InvoiceForm />}
         {showLogisticsForm && <LogisticsForm />}
-        {showPaymentForm && <PaymentForm />}
+        {showPaymentForm && <PaymentForm />} */}
+
+        <div>{renderForm()}</div>
+
         <Grid container spacing={2} style={{ padding: "20px" }}>
           <Grid
             item

@@ -149,19 +149,6 @@ const InvoiceForm = () => {
                 </Grid>
               </Grid>
               <Box display="flex" justifyContent="flex-end" mt={2}>
-                <Button
-                  variant="contained"
-                  style={{
-                    display: "flex-start",
-                    background: "linear-gradient(to right, #6a11cb, #2575fc)",
-                    color: "#fff",
-                    textTransform: "none",
-                    padding: "8px 24px",
-                  }}
-                  onClick={handleSubmitInvoice}
-                >
-                  Submit Invoice
-                </Button>
                 <IconButton onClick={() => handleRemoveInvoiceForm(form.id)} color="error">
                   <RemoveCircleIcon />
                 </IconButton>
@@ -171,6 +158,21 @@ const InvoiceForm = () => {
               </Box>
             </Box>
           ))}
+        <Box display="flex" justifyContent="center" mt={4}>
+          <Button
+            variant="contained"
+            style={{
+              display: "flex-start",
+              background: "linear-gradient(to right, #6a11cb, #2575fc)",
+              color: "#fff",
+              textTransform: "none",
+              padding: "8px 24px",
+            }}
+            onClick={handleSubmitInvoice}
+          >
+            Submit Invoices
+          </Button>
+        </Box>
       </Grid>
     </LocalizationProvider>
   );
